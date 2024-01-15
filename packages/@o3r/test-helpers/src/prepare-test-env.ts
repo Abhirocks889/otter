@@ -4,9 +4,9 @@ import * as path from 'node:path';
 import type { PackageJson } from 'type-fest';
 import { minVersion } from 'semver';
 import { createTestEnvironmentAngular } from './test-environments/create-test-environment-angular';
-import { createTestEnvironmentAngularWithO3rCore } from './test-environments/create-test-environment-angular-with-o3r-core';
 import { createTestEnvironmentBlank } from './test-environments/create-test-environment-blank';
-import { createWithLock, packageManagerInstall, setPackagerManagerConfig, setupGit } from './utilities';
+import { createWithLock, packageManagerInstall, setPackagerManagerConfig, setupGit } from './utilities/index';
+import { createTestEnvironmentOtterProjectWithApp } from './test-environments/create-test-environment-otter-project';
 
 /**
  * 'blank' only create yarn/npm config
@@ -96,29 +96,26 @@ export async function prepareTestEnv(folderName: string, type: PrepareTestEnvTyp
   } else {
     // Create new base app if needed
     const baseAppAngular = `base-app-angular${generateMonorepo ? '-monorepo' : ''}`;
-    await createTestEnvironmentAngular({
-      appName: 'test-app',
-      appDirectory: baseAppAngular,
-      cwd: itTestsFolderPath,
-      globalFolderPath,
-      yarnVersion,
-      angularVersion,
-      materialVersion,
-      replaceExisting: !process.env.CI,
-      generateMonorepo
-    });
 
     if (type === 'angular-with-o3r-core' || type === 'angular-monorepo-with-o3r-core') {
       // Create new base app if needed
-      await createTestEnvironmentAngularWithO3rCore({
+      await createTestEnvironmentOtterProjectWithApp({
         appName: 'test-app',
         appDirectory: `base-app-angular${generateMonorepo ? '-monorepo' : ''}-with-o3r-core`,
         cwd: itTestsFolderPath,
         globalFolderPath,
         yarnVersion,
+        replaceExisting: !process.env.CI
+      });
+    } else {
+      await createTestEnvironmentAngular({
+        appName: 'test-app',
+        appDirectory: baseAppAngular,
+        cwd: itTestsFolderPath,
+        globalFolderPath,
+        yarnVersion,
         angularVersion,
         materialVersion,
-        baseAngularAppPath: path.join(itTestsFolderPath, baseAppAngular),
         replaceExisting: !process.env.CI,
         generateMonorepo
       });

@@ -4,6 +4,11 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { updateCmsAdapter } from '../cms-adapter';
 import type { NgAddSchematicsSchema } from './schema';
+import type { DependencyToAdd } from '@o3r/schematics';
+
+const devDependenciesToInstall = [
+  'chokidar'
+];
 
 /**
  * Add Otter styling to an Angular Project
@@ -17,14 +22,14 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
       const {
         getDefaultOptionsForSchematic,
         getO3rPeerDeps,
-        getProjectNewDependenciesType,
+        getProjectNewDependenciesTypes,
         getWorkspaceConfig,
-        ngAddPackages,
-        ngAddPeerDependencyPackages,
+        setupDependencies,
         removePackages,
         registerPackageCollectionSchematics,
         setupSchematicsDefaultParams,
-        updateSassImports
+        updateSassImports,
+        getExternalDependenciesVersionRange
       } = await import('@o3r/schematics');
       options = {...getDefaultOptionsForSchematic(getWorkspaceConfig(tree), '@o3r/styling', 'ng-add', options), ...options};
       const {updateThemeFiles, removeV7OtterAssetsInAngularJson} = await import('./theme-files');
@@ -35,20 +40,33 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
         depsInfo.o3rPeerDeps = [...depsInfo.o3rPeerDeps , '@o3r/extractors'];
       }
       const workspaceProject = options.projectName ? getWorkspaceConfig(tree)?.projects[options.projectName] : undefined;
-      const workingDirectory = workspaceProject?.root || '.';
-      const dependencyType = getProjectNewDependenciesType(workspaceProject);
+      const dependencies = depsInfo.o3rPeerDeps.reduce((acc, dep) => {
+        acc[dep] = {
+          inManifest: [{
+            range: `~${depsInfo.packageVersion}`,
+            types: getProjectNewDependenciesTypes(workspaceProject)
+          }]
+        };
+        return acc;
+      }, {} as Record<string, DependencyToAdd>);
+      Object.entries(getExternalDependenciesVersionRange(devDependenciesToInstall, packageJsonPath))
+        .forEach(([dep, range]) => {
+          dependencies[dep] = {
+            inManifest: [{
+              range,
+              types: [NodeDependencyType.Dev]
+            }]
+          };
+        });
       return () => chain([
         removePackages(['@otter/styling']),
         updateSassImports('o3r'),
         updateThemeFiles(__dirname, options),
         removeV7OtterAssetsInAngularJson(options),
-        ngAddPackages(depsInfo.o3rPeerDeps, {
-          skipConfirmation: true,
-          version: depsInfo.packageVersion,
-          parentPackageInfo: depsInfo.packageName,
+        setupDependencies({
           projectName: options.projectName,
-          dependencyType,
-          workingDirectory
+          dependencies,
+          ngAddToRun: depsInfo.o3rPeerDeps
         }),
         registerPackageCollectionSchematics(JSON.parse(fs.readFileSync(packageJsonPath).toString())),
         setupSchematicsDefaultParams({
@@ -61,7 +79,6 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
             useOtterTheming: undefined
           }
         }),
-        ngAddPeerDependencyPackages(['chokidar'], packageJsonPath, NodeDependencyType.Dev, {...options, workingDirectory, skipNgAddSchematicRun: true}, depsInfo.packageName),
         ...(options.enableMetadataExtract ? [updateCmsAdapter(options)] : [])
       ])(tree, context);
     } catch (e) {

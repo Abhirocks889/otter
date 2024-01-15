@@ -5,6 +5,7 @@ import * as fs from 'node:fs';
 import { updateCmsAdapter } from '../cms-adapter';
 import type { NgAddSchematicsSchema } from './schema';
 import { registerDevtools } from './helpers/devtools-registration';
+import type { DependencyToAdd } from '@o3r/schematics';
 
 /**
  * Add Otter components to an Angular Project
@@ -17,9 +18,9 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
       const {
         getDefaultOptionsForSchematic,
         getO3rPeerDeps,
-        getProjectNewDependenciesType,
+        getProjectNewDependenciesTypes,
         getWorkspaceConfig,
-        ngAddPackages,
+        setupDependencies,
         ngAddPeerDependencyPackages,
         removePackages,
         registerPackageCollectionSchematics
@@ -36,16 +37,21 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
 
       const workspaceProject = options.projectName ? getWorkspaceConfig(tree)?.projects[options.projectName] : undefined;
       const workingDirectory = workspaceProject?.root || '.';
-      const dependencyType = getProjectNewDependenciesType(workspaceProject);
+      const dependencies = depsInfo.o3rPeerDeps.reduce((acc, dep) => {
+        acc[dep] = {
+          inManifest: [{
+            range: `~${depsInfo.packageVersion}`,
+            types: getProjectNewDependenciesTypes(workspaceProject)
+          }]
+        };
+        return acc;
+      }, {} as Record<string, DependencyToAdd>);
       const rule = chain([
         removePackages(['@otter/components']),
-        ngAddPackages(depsInfo.o3rPeerDeps, {
-          skipConfirmation: true,
-          version: depsInfo.packageVersion,
-          parentPackageInfo: depsInfo.packageName,
+        setupDependencies({
           projectName: options.projectName,
-          dependencyType,
-          workingDirectory
+          dependencies,
+          ngAddToRun: depsInfo.o3rPeerDeps
         }),
         ngAddPeerDependencyPackages(['chokidar'], packageJsonPath, NodeDependencyType.Dev, {...options, workingDirectory, skipNgAddSchematicRun: true}, '@o3r/components - install builder dependency'),
         registerPackageCollectionSchematics(packageJson),

@@ -2,15 +2,17 @@ import { apply, chain, MergeStrategy, mergeWith, move, noop, renameTemplateFiles
 import {
   addVsCodeRecommendations,
   createSchematicWithMetricsIfInstalled,
+  type DependencyToAdd,
+  getExternalDependenciesVersionRange,
   getO3rPeerDeps,
-  getProjectNewDependenciesType,
+  getProjectNewDependenciesTypes,
   getTestFramework,
   getWorkspaceConfig,
-  ngAddPackages,
-  ngAddPeerDependencyPackages,
   O3rCliError,
   registerPackageCollectionSchematics,
-  removePackages, setupSchematicsDefaultParams } from '@o3r/schematics';
+  removePackages, setupDependencies,
+  setupSchematicsDefaultParams
+} from '@o3r/schematics';
 import { askConfirmation } from '@angular/cli/src/utilities/prompt';
 import { NodeDependencyType } from '@schematics/angular/utility/dependencies';
 import * as fs from 'node:fs';
@@ -19,6 +21,13 @@ import type { PackageJson } from 'type-fest';
 import type { NgAddSchematicsSchema } from '../../schematics/ng-add/schema';
 import { updateFixtureConfig } from './fixture';
 import { updatePlaywright } from './playwright';
+
+const devDependenciesToInstall = [
+  'pixelmatch',
+  'pngjs',
+  'jest',
+  'jest-preset-angular'
+];
 
 function canResolvePlaywright(): boolean {
   try {
@@ -41,8 +50,25 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
       const depsInfo = getO3rPeerDeps(testPackageJsonPath);
       const workspaceProject = options.projectName ? getWorkspaceConfig(tree)?.projects[options.projectName] : undefined;
       const workingDirectory = workspaceProject?.root || '.';
-      const dependencyType = getProjectNewDependenciesType(workspaceProject);
       const projectType = workspaceProject?.projectType || 'application';
+      const dependencies = depsInfo.o3rPeerDeps.reduce((acc, dep) => {
+        acc[dep] = {
+          inManifest: [{
+            range: `~${depsInfo.packageVersion}`,
+            types: getProjectNewDependenciesTypes(workspaceProject)
+          }]
+        };
+        return acc;
+      }, {} as Record<string, DependencyToAdd>);
+      Object.entries(getExternalDependenciesVersionRange(devDependenciesToInstall, testPackageJsonPath))
+        .forEach(([dep, range]) => {
+          dependencies[dep] = {
+            inManifest: [{
+              range,
+              types: [NodeDependencyType.Dev]
+            }]
+          };
+        });
 
       let installJest;
       const testFramework = options.testingFramework || getTestFramework(getWorkspaceConfig(tree), context);
@@ -79,16 +105,12 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
         updateFixtureConfig(options, installJest),
         removePackages(['@otter/testing']),
         addVsCodeRecommendations(['Orta.vscode-jest']),
-        ngAddPackages(depsInfo.o3rPeerDeps, {
-          skipConfirmation: true,
-          version: depsInfo.packageVersion,
-          parentPackageInfo: depsInfo.packageName,
+        setupDependencies({
           projectName: options.projectName,
-          dependencyType: dependencyType,
-          workingDirectory
+          dependencies,
+          ngAddToRun: depsInfo.o3rPeerDeps
         }),
         installPlaywright ? updatePlaywright(options) : noop,
-        ngAddPeerDependencyPackages(['pixelmatch', 'pngjs'], testPackageJsonPath, dependencyType, {...options, workingDirectory, skipNgAddSchematicRun: true}),
         registerPackageCollectionSchematics(packageJson),
         setupSchematicsDefaultParams({
           // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -132,7 +154,6 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
             renameTemplateFiles()
           ]), MergeStrategy.Default);
           rules.push(
-            ngAddPeerDependencyPackages(['jest', 'jest-preset-angular'], testPackageJsonPath, NodeDependencyType.Dev, {...options, workingDirectory, skipNgAddSchematicRun: true}),
             jestConfigFilesForProject,
             jestConfigFilesForWorkspace
           );

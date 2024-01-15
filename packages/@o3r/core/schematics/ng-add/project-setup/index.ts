@@ -13,9 +13,9 @@ import {
   applyEsLintFix,
   getO3rPeerDeps,
   getWorkspaceConfig,
-  install,
-  ngAddPackages,
-  removePackages
+  removePackages,
+  getExternalDependenciesVersionRange,
+  type SetupDependenciesOptions
 } from '@o3r/schematics';
 import type { NgAddSchematicsSchema } from '../schema';
 import { updateBuildersNames } from '../updates-for-v8/cms-adapters/update-builders-names';
@@ -27,8 +27,9 @@ import { shouldOtterLinterBeInstalled } from '../utils/index';
  * Enable all the otter features requested by the user
  * Install all the related dependencies and import the features inside the application
  * @param options installation options to pass to the all the other packages' installation
+ * @param dependenciesSetupConfig
  */
-export const prepareProject = (options: NgAddSchematicsSchema) => async (tree: Tree, context: SchematicContext) => {
+export const prepareProject = (options: NgAddSchematicsSchema, dependenciesSetupConfig: SetupDependenciesOptions) => async (tree: Tree, context: SchematicContext) => {
   const coreSchematicsFolder = path.resolve(__dirname, '..');
   const corePackageJsonPath = path.resolve(coreSchematicsFolder, '..', '..', 'package.json');
   const corePackageJsonContent = JSON.parse(fs.readFileSync(corePackageJsonPath, { encoding: 'utf-8' }));
@@ -46,9 +47,19 @@ export const prepareProject = (options: NgAddSchematicsSchema) => async (tree: T
     ...(installOtterLinter ? ['@o3r/eslint-config-otter'] : []),
     ...depsInfo.o3rPeerDeps
   ]));
-  const type = projectType === 'library' ? NodeDependencyType.Peer : NodeDependencyType.Default;
   const projectDirectory = workspaceProject?.root;
-  const optionsAndWorkingDir = { ...options, workingDirectory: projectDirectory };
+  const optionsAndWorkingDir = { ...options, workingDirectory: projectDirectory, dependenciesSetupConfig };
+
+  Object.entries(getExternalDependenciesVersionRange(internalPackagesToInstallWithNgAdd, corePackageJsonPath))
+    .forEach(([dep, range]) => {
+      dependenciesSetupConfig.dependencies[dep] = {
+        inManifest: [{
+          range,
+          types: [NodeDependencyType.Dev]
+        }]
+      };
+    });
+  (dependenciesSetupConfig.ngAddToRun ||= []).push(...internalPackagesToInstallWithNgAdd);
 
   return () => {
 
@@ -61,13 +72,8 @@ export const prepareProject = (options: NgAddSchematicsSchema) => async (tree: T
       projectType === 'application' ? updateAdditionalModules(optionsAndWorkingDir, coreSchematicsFolder) : noop,
       removePackages(packagesToRemove),
       o3rBasicUpdates(options.projectName, o3rCoreVersion, projectType),
-      ngAddPackages(internalPackagesToInstallWithNgAdd,
-        { skipConfirmation: true, version: o3rCoreVersion, parentPackageInfo: '@o3r/core - setup', projectName: options.projectName, dependencyType: type, workingDirectory: projectDirectory }
-      ),
       // task that should run after the schematics should be after the ng-add task as they will wait for the package installation before running the other dependencies
-      !options.skipLinter && installOtterLinter ? applyEsLintFix() : noop(),
-      // dependencies for store (mainly ngrx, store dev tools, storage sync), playwright, linter are installed by hand if the option is active
-      options.skipInstall ? noop() : install
+      !options.skipLinter && installOtterLinter ? applyEsLintFix() : noop()
     ];
 
     return chain(appLibRules)(tree, context);

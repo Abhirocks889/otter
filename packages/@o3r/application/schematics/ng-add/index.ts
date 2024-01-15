@@ -5,6 +5,7 @@ import * as path from 'node:path';
 import type { NgAddSchematicsSchema } from './schema';
 import { registerDevtools } from './helpers/devtools-registration';
 import { generateCmsConfigFile } from './helpers/cms-registration';
+import type { DependencyToAdd } from '@o3r/schematics';
 
 /**
  * Add Otter application to an Angular Project
@@ -15,14 +16,13 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
   return async (tree: Tree, context: SchematicContext) => {
     try {
       const {
-        addImportToModuleFile, getAppModuleFilePath, getModuleIndex, getWorkspaceConfig, insertImportToModuleFile, ngAddPackages, getO3rPeerDeps, getProjectNewDependenciesType
+        addImportToModuleFile, getAppModuleFilePath, getModuleIndex, getWorkspaceConfig, insertImportToModuleFile, setupDependencies, getO3rPeerDeps, getProjectNewDependenciesTypes
       } = await import('@o3r/schematics');
       const { isImported } = await import('@schematics/angular/utility/ast-utils');
       const ts = await import('typescript');
       const depsInfo = getO3rPeerDeps(path.resolve(__dirname, '..', '..', 'package.json'));
 
       const workspaceProject = options.projectName ? getWorkspaceConfig(tree)?.projects[options.projectName] : undefined;
-      const workingDirectory = workspaceProject?.root;
 
       const addAngularAnimationPreferences: Rule = () => {
         const moduleFilePath = getAppModuleFilePath(tree, context, options.projectName);
@@ -69,17 +69,22 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
         tree.commitUpdate(recorder);
         return tree;
       };
-      const dependencyType = getProjectNewDependenciesType(workspaceProject);
+      const dependencies = depsInfo.o3rPeerDeps.reduce((acc, dep) => {
+        acc[dep] = {
+          inManifest: [{
+            range: `^${depsInfo.packageVersion}`,
+            types: getProjectNewDependenciesTypes(workspaceProject)
+          }]
+        };
+        return acc;
+      }, {} as Record<string, DependencyToAdd>);
 
       const registerDevtoolRule = await registerDevtools(options);
       return () => chain([
-        ngAddPackages(depsInfo.o3rPeerDeps, {
-          skipConfirmation: true,
-          version: depsInfo.packageVersion,
-          parentPackageInfo: depsInfo.packageName,
+        setupDependencies({
           projectName: options.projectName,
-          dependencyType,
-          workingDirectory
+          dependencies,
+          ngAddToRun: depsInfo.o3rPeerDeps
         }),
         addAngularAnimationPreferences,
         registerDevtoolRule,
