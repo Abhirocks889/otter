@@ -16,7 +16,7 @@ let appFolderPath: string;
 describe('new otter application with apis-manager', () => {
   setupLocalRegistry();
   beforeAll(async () => {
-    appFolderPath = await prepareTestEnv(appName, 'angular-with-o3r-core');
+    appFolderPath = (await prepareTestEnv(appName)).appPath;
     execAppOptions.cwd = appFolderPath;
   });
   test('should add apis-manager to existing application', () => {

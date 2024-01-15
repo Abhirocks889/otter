@@ -1,9 +1,14 @@
 import { strings } from '@angular-devkit/core';
 import { apply, chain, MergeStrategy, mergeWith, move, renameTemplateFiles, Rule, SchematicContext, template, Tree, url } from '@angular-devkit/schematics';
-import { getWorkspaceConfig, NgAddPackageOptions, ngAddPeerDependencyPackages } from '@o3r/schematics';
+import {
+  getWorkspaceConfig,
+  NgAddPackageOptions,
+  setupDependencies
+} from '@o3r/schematics';
 import { NodeDependencyType } from '@schematics/angular/utility/dependencies';
 import * as path from 'node:path';
-import { PackageJson } from 'type-fest';
+import * as fs from 'node:fs';
+import type { PackageJson } from 'type-fest';
 
 /**
  * Add Playwright to Otter application
@@ -38,7 +43,26 @@ playwright-reports
       tree.overwrite(packageJsonPath, JSON.stringify(packageJson, null, 2));
     }
     const corePackageJsonPath = path.resolve(__dirname, '..', '..', '..', 'package.json');
-    const ngAddRules = ngAddPeerDependencyPackages(['@playwright/test', 'rimraf'], corePackageJsonPath, NodeDependencyType.Dev, {...options, skipNgAddSchematicRun: true, workingDirectory});
+    const ownPackageJson = JSON.parse(fs.readFileSync(corePackageJsonPath, { encoding: 'utf-8' })) as PackageJson & { generatorDependencies: Record<string, string> };
+    const dependencies = {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      '@playwright/test': {
+        inManifest: [{
+          range: ownPackageJson.devDependencies!['@playwright/test'],
+          types: [NodeDependencyType.Dev]
+        }]
+      },
+      rimraf: {
+        inManifest: [{
+          range: ownPackageJson.devDependencies!.rimraf,
+          types: [NodeDependencyType.Dev]
+        }]
+      }
+    };
+    const ngAddRules = setupDependencies({
+      projectName: options.projectName || undefined,
+      dependencies
+    });
 
     // generate files
     if (!tree.exists(path.posix.join(workingDirectory, 'e2e-playwright', 'playwright-config.ts'))) {

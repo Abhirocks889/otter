@@ -1,18 +1,21 @@
 import { chain, Rule, SchematicContext, Tree } from '@angular-devkit/schematics';
 import {
+  type DependencyToAdd,
   getAppModuleFilePath,
-  getProjectNewDependenciesType,
+  getProjectNewDependenciesTypes,
   getWorkspaceConfig,
-  ngAddPeerDependencyPackages
+  setupDependencies
 } from '@o3r/schematics';
 import * as ts from 'typescript';
 import { addRootImport } from '@schematics/angular/utility';
 import { insertImport, isImported } from '@schematics/angular/utility/ast-utils';
 import { InsertChange } from '@schematics/angular/utility/change';
-import { NodeDependencyType } from '@schematics/angular/utility/dependencies';
 import * as path from 'node:path';
+import * as fs from 'node:fs';
+import type { PackageJson } from 'type-fest';
 
 const packageJsonPath = path.resolve(__dirname, '..', '..', '..', 'package.json');
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, { encoding: 'utf-8' })) as PackageJson & { generatorDependencies: Record<string, string> };
 const ngrxStoreDevtoolsDep = '@ngrx/store-devtools';
 
 /**
@@ -30,11 +33,23 @@ export function updateAdditionalModules(options: { projectName?: string | undefi
    */
   const updatePackageJson: Rule = (tree: Tree, context: SchematicContext) => {
     const workspaceProject = options.projectName ? getWorkspaceConfig(tree)?.projects[options.projectName] : undefined;
-    const type: NodeDependencyType = getProjectNewDependenciesType(workspaceProject);
+    const types = getProjectNewDependenciesTypes(workspaceProject);
     const generatorDependencies = [ngrxStoreDevtoolsDep];
 
+    const dependencies: Record<string, DependencyToAdd> = {
+      chokidar: {
+        inManifest: [{
+          range: packageJson.generatorDependencies['@ngrx/store-devtools'],
+          types
+        }]
+      }
+    };
+
     try {
-      return ngAddPeerDependencyPackages(generatorDependencies, packageJsonPath, type, {...options, skipNgAddSchematicRun: true});
+      return setupDependencies({
+        projectName: options.projectName,
+        dependencies
+      });
     } catch (e) {
       context.logger.warn(`Could not find generatorDependencies ${generatorDependencies.join(', ')} in file ${packageJsonPath}`);
     }

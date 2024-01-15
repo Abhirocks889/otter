@@ -17,7 +17,7 @@ let appFolderPath: string;
 describe('new otter application with configuration', () => {
   setupLocalRegistry();
   beforeAll(async () => {
-    appFolderPath = await prepareTestEnv(appName, 'angular-with-o3r-core');
+    appFolderPath = (await prepareTestEnv(appName)).appPath;
     execAppOptions.cwd = appFolderPath;
   });
   test('should add configuration to existing application', async () => {

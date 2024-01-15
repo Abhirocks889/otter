@@ -20,7 +20,7 @@ describe('new otter application with analytics', () => {
   setupLocalRegistry();
   describe('standalone', () => {
     beforeAll(async () => {
-      appFolderPath = await prepareTestEnv(appName, 'angular-with-o3r-core');
+      appFolderPath = (await prepareTestEnv(appName)).appPath;
       execAppOptions.cwd = appFolderPath;
     });
     test('should add analytics to existing application', async () => {
@@ -41,7 +41,7 @@ describe('new otter application with analytics', () => {
 
   describe('monorepo', () => {
     beforeAll(async () => {
-      const workspacePath = await prepareTestEnv(`${appName}-monorepo`, 'angular-monorepo-with-o3r-core');
+      const workspacePath = (await prepareTestEnv(`${appName}-monorepo`)).workspacePath;
       appFolderPath = join(workspacePath, 'projects', 'test-app');
       execAppOptions.cwd = workspacePath;
     });

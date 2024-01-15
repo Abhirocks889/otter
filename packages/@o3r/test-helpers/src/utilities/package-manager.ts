@@ -187,6 +187,7 @@ export function setPackagerManagerConfig(options: PackageManagerConfig, execAppO
       // Set config to target local registry
       execFileSync('yarn', ['config', 'set', 'checksumBehavior', 'update'], execOptions);
       execFileSync('yarn', ['config', 'set', 'enableImmutableInstalls', 'false'], execOptions);
+      execFileSync('yarn', ['config', 'set', 'enableScripts', 'false'], execOptions);
       if (options.globalFolderPath) {
         execFileSync('yarn', ['config', 'set', 'enableGlobalCache', 'true'], execOptions);
         execFileSync('yarn', ['config', 'set', 'globalFolder', options.globalFolderPath], execOptions);

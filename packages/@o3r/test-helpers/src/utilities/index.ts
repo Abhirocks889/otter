@@ -6,3 +6,4 @@ export * from './locker';
 export * from './package-manager';
 export * from './verdaccio';
 export * from './virtual-fs';
+export * from './add-package';

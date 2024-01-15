@@ -36,6 +36,7 @@
     "start:modules": "yarn run build:dev:modules && yarn run watch:modules",
     "storybook": "yarn doc:generate:json && yarn ng run storybook:extract-style && start-storybook -p 6006",
     "verdaccio:start": "docker run -d -it --rm --name verdaccio -p 4873:4873 -v \"$(yarn get:current-dir)/.verdaccio/conf\":/verdaccio/conf verdaccio/verdaccio",
+    "verdaccio:start-local": "npx --yes verdaccio --config \"$(yarn get:current-dir)/.verdaccio/conf/config-without-docker.yaml\" --listen http://127.0.0.1:4873",
     "verdaccio:start-persistent": "docker run -d -it --rm --name verdaccio -p 4873:4873 -v \"$(yarn get:current-dir)/.verdaccio/conf\":/verdaccio/conf -v \"$(yarn get:current-dir)/.verdaccio/storage\":/verdaccio/storage:z verdaccio/verdaccio",
     "verdaccio:clean": "rimraf -g \".verdaccio/storage/@{o3r,ama-sdk,ama-terasu}\"",
     "verdaccio:login": "yarn cpy --cwd=./.verdaccio/conf .npmrc . --rename=.npmrc-logged && npx --yes npm-cli-login -u verdaccio -p verdaccio -e test@test.com -r http://127.0.0.1:4873 --config-path \".verdaccio/conf/.npmrc-logged\"",

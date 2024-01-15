@@ -8,7 +8,8 @@ import type { DependencyToAdd } from '@o3r/schematics';
 import { registerDevtools } from './helpers/devtools-registration';
 
 const dependenciesToInstall = [
-  'chokidar'
+  'chokidar',
+  'globby'
 ];
 
 /**
@@ -66,12 +67,8 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
         registerPackageCollectionSchematics(packageJson),
         setupSchematicsDefaultParams({
           // eslint-disable-next-line @typescript-eslint/naming-convention
-          '@o3r/core:component': {
-            useLocalization: undefined
-          },
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          '@o3r/core:component-presenter': {
-            useLocalization: undefined
+          '@o3r/core:component*': {
+            useLocalization: true
           }
         }),
         registerDevtoolRule

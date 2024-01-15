@@ -1,18 +1,19 @@
 import { apply, chain, MergeStrategy, mergeWith, move, noop, Rule, SchematicContext, template, Tree, url } from '@angular-devkit/schematics';
 import {
   createSchematicWithMetricsIfInstalled,
+  type DependencyToAdd,
   findFirstNodeOfKind,
   getAppModuleFilePath,
   getModuleIndex,
   getPackageManagerRunner,
-  getProjectNewDependenciesType,
+  getProjectNewDependenciesTypes,
   getTemplateFolder,
   getWorkspaceConfig,
   ignorePatterns,
-  ngAddPeerDependencyPackages,
   insertBeforeModule as o3rInsertBeforeModule,
   insertImportToModuleFile as o3rInsertImportToModuleFile,
   readPackageJson,
+  setupDependencies,
   writeAngularJson
 } from '@o3r/schematics';
 import {
@@ -22,13 +23,11 @@ import {
 import { addRootImport, addRootProvider } from '@schematics/angular/utility';
 import { InsertChange } from '@schematics/angular/utility/change';
 import * as path from 'node:path';
+import * as fs from 'node:fs';
 import * as ts from 'typescript';
 
 const packageJsonPath = path.resolve(__dirname, '..', '..', 'package.json');
-const ngxTranslateCoreDep = '@ngx-translate/core';
-const intlMessageFormatDep = 'intl-messageformat';
-const formatjsIntlNumberformatDep = '@formatjs/intl-numberformat';
-const angularCdkDep = '@angular/cdk';
+const ownPackageJson = JSON.parse(fs.readFileSync(packageJsonPath, { encoding: 'utf-8' })) as { peerDependencies: Record<string, string> };
 
 /**
  * Add Otter localization support
@@ -440,17 +439,27 @@ export function updateLocalization(options: { projectName?: string | null | unde
    * @param _context
    * @param context
    */
-  const addDependencies: Rule = (tree: Tree, context: SchematicContext) => {
+  const addDependencies: Rule = (tree: Tree) => {
+    const ngxTranslateCoreDep = '@ngx-translate/core';
+    const intlMessageFormatDep = 'intl-messageformat';
+    const formatjsIntlNumberformatDep = '@formatjs/intl-numberformat';
+    const angularCdkDep = '@angular/cdk';
     const workspaceProject = options.projectName ? getWorkspaceConfig(tree)?.projects[options.projectName] : undefined;
-    const workingDirectory = workspaceProject?.root || '.';
-    const type = getProjectNewDependenciesType(workspaceProject);
+    const types = getProjectNewDependenciesTypes(workspaceProject);
     const generatorDependencies = [ngxTranslateCoreDep, intlMessageFormatDep, formatjsIntlNumberformatDep, angularCdkDep];
-    try {
-      return ngAddPeerDependencyPackages(generatorDependencies, packageJsonPath, type, {...options, workingDirectory, skipNgAddSchematicRun: true})(tree, context);
-    } catch (e: any) {
-      context.logger.warn(`Could not find generatorDependencies ${generatorDependencies.join(', ')} in file ${packageJsonPath}`);
-      return tree;
-    }
+    const dependencies = generatorDependencies.reduce((acc, dep) => {
+      acc[dep] = {
+        inManifest: [{
+          range: ownPackageJson.peerDependencies[dep],
+          types
+        }]
+      };
+      return acc;
+    }, {} as Record<string, DependencyToAdd>);
+    return setupDependencies({
+      projectName: options.projectName || undefined,
+      dependencies
+    });
   };
 
   // Ignore generated CMS metadata

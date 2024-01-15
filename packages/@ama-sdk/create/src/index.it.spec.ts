@@ -25,7 +25,7 @@ describe('Create new sdk command', () => {
   beforeEach(async () => {
     const isYarnTest = packageManager.startsWith('yarn');
     const yarnVersion = isYarnTest ? getYarnVersionFromRoot(process.cwd()) || 'latest' : undefined;
-    sdkFolderPath = await prepareTestEnv(appName, 'blank', yarnVersion);
+    sdkFolderPath = (await prepareTestEnv(appName, {type: 'blank', yarnVersion })).workspacePath;
     sdkPackagePath = path.join(sdkFolderPath, sdkPackageName.replace(/^@/, ''));
     execAppOptions.cwd = sdkFolderPath;
 

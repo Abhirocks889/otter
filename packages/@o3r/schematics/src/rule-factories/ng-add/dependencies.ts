@@ -1,4 +1,4 @@
-import { chain, Rule, Schematic } from '@angular-devkit/schematics';
+import { chain, Rule, Schematic, type TaskId } from '@angular-devkit/schematics';
 import { NodeDependencyType } from '@schematics/angular/utility/dependencies';
 import * as path from 'node:path';
 import type { PackageJson } from 'type-fest';
@@ -64,6 +64,10 @@ export interface SetupDependenciesOptions {
   ngAddOptions?: NgAddSchematicOptions;
   /** Enforce install package manager */
   packageManager?: SupportedPackageManagers;
+  /** Task will run after the given task ID (if specified) */
+  runAfterTasks?: TaskId[];
+  /** Callback to run after the task ID is calculated */
+  scheduleTaskCallback?: (taskIds?: TaskId[]) => void;
 }
 
 /**
@@ -93,8 +97,8 @@ export const setupDependencies = (options: SetupDependenciesOptions): Rule => {
                 if (updateNgAddList) {
                   ngAddToRun.delete(packageToInstall);
                 }
-                context.logger.warn(`The dependency ${packageToInstall} (${depType}) will not added ` +
-                  `because its range is inferior to the current one (${range} < ${packageJsonContent[depType]![packageToInstall]!}) in targeted ${packageJsonPath}`);
+                context.logger.info(`The dependency ${packageToInstall} (${depType}) is already in ${packageJsonPath}, it will not be added.`);
+                context.logger.debug(`Because its range is inferior or included to the current one (${range} < ${packageJsonContent[depType]![packageToInstall]!}) in targeted ${packageJsonPath}`);
               }
             } else {
               if (updateNgAddList) {
@@ -125,7 +129,7 @@ export const setupDependencies = (options: SetupDependenciesOptions): Rule => {
     const workspaceConfig = getWorkspaceConfig(tree);
     const workspaceProject = options.projectName && workspaceConfig?.projects?.[options.projectName] || undefined;
     const projectDirectory = workspaceProject?.root;
-    Object.entries(options.dependencies)
+    return chain(Object.entries(options.dependencies)
       .map(([packageName, dependencyDetails]) => {
         const shouldRunInSubPackage = projectDirectory && !dependencyDetails.toWorkspaceOnly;
         const rootPackageRule = editPackageJson('package.json', packageName, dependencyDetails, !shouldRunInSubPackage);
@@ -136,38 +140,41 @@ export const setupDependencies = (options: SetupDependenciesOptions): Rule => {
           ]);
         }
         return rootPackageRule;
-      });
+      })
+    );
   };
 
   const runNgAddSchematics: Rule = (_, context) => {
     const packageManager = options.packageManager || getPackageManager();
-    const installId = isInstallNeeded() ? context.addTask(new NodePackageInstallTask({ packageManager })) : undefined;
+    const installId = isInstallNeeded() ? [context.addTask(new NodePackageInstallTask({ packageManager }), options.runAfterTasks)] : undefined;
 
-    const getOptions = (packageName: string, schema: Schematic<any, any>) => {
-      const schemaOptions = schema.description.schemaJson?.properties || {};
-      return Object.entries({ projectName: options.projectName, ...options.ngAddOptions, ...options.dependencies[packageName].ngAddOptions })
-        .reduce<Record<string, any>>((accOptions, [key, value]: [string, any]) => {
-          if (schemaOptions[key]) {
-            accOptions[key] = value;
-          }
-          return accOptions;
-        }, {});
+    const getOptions = (packageName: string, schema?: Schematic<any, any>) => {
+      const schemaOptions = schema?.description.schemaJson?.properties;
+      return Object.fromEntries(
+        Object.entries({ projectName: options.projectName, ...options.ngAddOptions, ...options.dependencies[packageName].ngAddOptions })
+          .filter(([key]) => !schemaOptions || !!schemaOptions[key])
+      );
     };
 
-    [...ngAddToRun]
+    const finalTaskId = [...ngAddToRun]
       .map((packageName) => {
+        let schematic: Schematic<any, any> | undefined;
         try {
           const collection = context.engine.createCollection(packageName);
-          return { packageName, schematic: collection.createSchematic('ng-add') };
-        } catch {
-          context.logger.warn(`No ng-add found for ${packageName}`);
-          return undefined;
+          schematic = collection.createSchematic('ng-add');
+        } catch (e: any) {
+          context.logger.warn(`The packages ${packageName} was not installed, the options check will be skipped`, e);
         }
+        const schematicOptions = getOptions(packageName, schematic);
+        return { packageName, schematicOptions };
       })
-      .filter((collection): collection is { packageName: string; schematic: Schematic<any, any> } => !!collection)
-      .reduce((id, { packageName, schematic }) =>
-        context.addTask(new RunSchematicTask(packageName, 'ng-add', getOptions(packageName, schematic)), id && [id]),
-      installId);
+      .reduce((id, { packageName, schematicOptions }) =>
+        [context.addTask(new RunSchematicTask(packageName, 'ng-add', schematicOptions), id)],
+      installId || options.runAfterTasks);
+
+    if (options.scheduleTaskCallback) {
+      options.scheduleTaskCallback(finalTaskId);
+    }
   };
 
   return chain([

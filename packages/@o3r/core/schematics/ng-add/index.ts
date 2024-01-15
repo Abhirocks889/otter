@@ -25,7 +25,7 @@ const o3rDevDependencies = [
  */
 function ngAddFn(options: NgAddSchematicsSchema): Rule {
   const corePackageJsonContent = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', 'package.json'), {encoding: 'utf-8'})) as PackageJson;
-  const o3rCoreVersion = corePackageJsonContent.version ? `@${corePackageJsonContent.version}` : '';
+  const o3rCoreVersion = corePackageJsonContent.version!;
 
   return (): Rule => {
     const dependenciesSetupConfig: SetupDependenciesOptions = {

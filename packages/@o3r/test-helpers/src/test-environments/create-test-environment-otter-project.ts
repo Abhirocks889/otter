@@ -1,5 +1,5 @@
 import { execFileSync, ExecSyncOptions } from 'node:child_process';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import {
   createWithLock,
@@ -67,7 +67,11 @@ export async function createTestEnvironmentOtterProjectWithApp(inputOptions: Par
 
     // Create Project
     setPackagerManagerConfig(options, { ...execAppOptions, cwd: options.cwd});
-    const createOptions = `--package-manager=${getPackageManager()}`;
+    try {
+      mkdirSync(path.resolve(options.cwd, options.appDirectory), { recursive: true });
+    } catch {}
+    setPackagerManagerConfig(options, { ...execAppOptions, cwd: path.resolve(options.cwd, options.appDirectory) });
+    const createOptions = `--package-manager=${getPackageManager()} --skip-confirmation`;
     execFileSync('npm', `create @o3r@${o3rVersion} ${options.appDirectory} -- ${createOptions}`.split(' '),
       // eslint-disable-next-line @typescript-eslint/naming-convention
       {...execAppOptions, cwd: options.cwd, shell: process.platform === 'win32'});
@@ -77,10 +81,9 @@ export async function createTestEnvironmentOtterProjectWithApp(inputOptions: Par
       const gitIgnore = readFileSync(gitIgnorePath, {encoding: 'utf8'});
       writeFileSync(gitIgnorePath, gitIgnore.replace(/\/(dist|node_modules)/g, '$1'));
     }
-    setPackagerManagerConfig(options, execAppOptions);
     packageManagerInstall(execAppOptions);
-    packageManagerExec('ng g application dont-modify-me --style=scss --routing --skip-install', execAppOptions);
-    packageManagerExec(`ng g application ${options.appName} --style=scss --routing --skip-install`, execAppOptions);
+    packageManagerExec(`ng g application ${options.appName} --skip-install`, execAppOptions);
+    packageManagerExec('ng g application dont-modify-me --skip-install', execAppOptions);
 
 
     packageManagerExec('ng config cli.cache.environment all', execAppOptions);

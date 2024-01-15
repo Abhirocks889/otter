@@ -21,7 +21,6 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
         getProjectNewDependenciesTypes,
         getWorkspaceConfig,
         setupDependencies,
-        ngAddPeerDependencyPackages,
         removePackages,
         registerPackageCollectionSchematics
       } = await import('@o3r/schematics');
@@ -36,7 +35,6 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
       }
 
       const workspaceProject = options.projectName ? getWorkspaceConfig(tree)?.projects[options.projectName] : undefined;
-      const workingDirectory = workspaceProject?.root || '.';
       const dependencies = depsInfo.o3rPeerDeps.reduce((acc, dep) => {
         acc[dep] = {
           inManifest: [{
@@ -46,14 +44,24 @@ function ngAddFn(options: NgAddSchematicsSchema): Rule {
         };
         return acc;
       }, {} as Record<string, DependencyToAdd>);
+      const devDependencies: Record<string, DependencyToAdd> = {
+        chokidar: {
+          inManifest: [{
+            range: packageJson.peerDependencies.chokidar,
+            types: [NodeDependencyType.Dev]
+          }]
+        }
+      };
       const rule = chain([
         removePackages(['@otter/components']),
         setupDependencies({
           projectName: options.projectName,
-          dependencies,
+          dependencies: {
+            ...dependencies,
+            ...devDependencies
+          },
           ngAddToRun: depsInfo.o3rPeerDeps
         }),
-        ngAddPeerDependencyPackages(['chokidar'], packageJsonPath, NodeDependencyType.Dev, {...options, workingDirectory, skipNgAddSchematicRun: true}, '@o3r/components - install builder dependency'),
         registerPackageCollectionSchematics(packageJson),
         ...(options.enableMetadataExtract ? [updateCmsAdapter(options)] : []),
         await registerDevtools(options)

@@ -45,6 +45,7 @@ export interface CreateTestEnvironmentAngularWithO3rCoreOptions extends CreateTe
  * Generate a base angular app with minimal necessary dependencies and @o3r/core installed with basic preset
  * Uses a locker mechanism so this function can be called in parallel
  * The lock will automatically expire after 10 minutes if the creation of the app failed for whatever reason
+ * @deprecated Use {@link createTestEnvironmentOtterProjectWithApp} instead
  * @param inputOptions
  */
 export async function createTestEnvironmentAngularWithO3rCore(inputOptions: Partial<CreateTestEnvironmentAngularWithO3rCoreOptions>) {

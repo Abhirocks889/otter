@@ -21,7 +21,7 @@ describe('Create new otter project command', () => {
   beforeEach(async () => {
     const isYarnTest = packageManager.startsWith('yarn');
     const yarnVersion = isYarnTest ? getYarnVersionFromRoot(process.cwd()) || 'latest' : undefined;
-    baseFolderPath = await prepareTestEnv(appName, 'blank', yarnVersion);
+    baseFolderPath = (await prepareTestEnv(appName, {type: 'blank', yarnVersion })).workspacePath;
     appPackagePath = path.join(baseFolderPath, appName);
     execAppOptions.cwd = baseFolderPath;
   });
