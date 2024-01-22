@@ -51,7 +51,7 @@ describe('Create new sdk command', () => {
 
   test('should generate a full SDK when the specification is provided', () => {
     expect(() =>
-      packageManagerCreate(`@ama-sdk typescript ${sdkPackageName} --package-manager ${packageManager} --spec-path ./swagger-spec.yml`, execAppOptions)).not.toThrow();
+      packageManagerCreate(`@ama-sdk typescript ${sdkPackageName} --package-manager ${packageManager} --spec-path ./swagger-spec.yml --no-o3r-metrics`, execAppOptions)).not.toThrow();
     expect(() => packageManagerRun('build', { ...execAppOptions, cwd: sdkPackagePath })).not.toThrow();
   });
 
@@ -60,7 +60,7 @@ describe('Create new sdk command', () => {
     expect(() => packageManagerRun('build', { ...execAppOptions, cwd: sdkPackagePath })).not.toThrow();
     expect(() =>
       packageManagerExec(
-        `schematics @ama-sdk/schematics:typescript-core --spec-path ${path.join(path.relative(sdkPackagePath, sdkFolderPath), 'swagger-spec.yml')}`,
+        `schematics @ama-sdk/schematics:typescript-core --spec-path ${path.join(path.relative(sdkPackagePath, sdkFolderPath), 'swagger-spec.yml')} --no-o3r-metrics`,
         { ...execAppOptions, cwd: sdkPackagePath }
       )).not.toThrow();
     expect(() => packageManagerRun('build', { ...execAppOptions, cwd: sdkPackagePath })).not.toThrow();

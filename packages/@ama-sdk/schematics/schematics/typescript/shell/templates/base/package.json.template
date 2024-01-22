@@ -44,7 +44,6 @@
     "files:pack": "amasdk-files-pack",
     "test": "jest --passWithNoTests",
     "publish:package": "npm publish ./dist",
-    "postinstall": "husky install",
     "generate:mock": "schematics @ama-sdk/schematics:mock",
     "doc:generate": "typedoc",
     "tools:changelog": "standard-version"
