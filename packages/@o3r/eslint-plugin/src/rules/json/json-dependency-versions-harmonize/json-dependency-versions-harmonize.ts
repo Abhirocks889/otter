@@ -102,7 +102,7 @@ export default createRule<[Options, ...any], 'versionUpdate' | 'error', any>({
                     }
                     const range = dep.value.type === 'JSONLiteral' ? dep.value.value as string : (dep.value.type === 'JSONIdentifier' ? dep.value.name : undefined);
                     const bestRange = getBestRange(range, bestRanges[name]?.range);
-                    if (bestRange && bestRange !== range) {
+                    if (bestRange && semver.validRange(range) && semver.validRange(bestRange) && bestRange !== range) {
                       if (!options.alignPeerDependencies && depGroup.parent.type === 'JSONProperty' && range &&
                         (depGroup.parent.key.type === 'JSONLiteral' ? depGroup.parent.key.value.toString() : depGroup.parent.key.name) === 'peerDependencies' &&
                         semver.subset(bestRange, range)) {

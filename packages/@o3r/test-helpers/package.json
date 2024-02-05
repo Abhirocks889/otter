@@ -39,7 +39,7 @@
   "devDependencies": {
     "@angular-devkit/schematics": "~17.0.3",
     "@angular-eslint/eslint-plugin": "~17.2.0",
-    "@nx/eslint-plugin": "~17.3.0",
+    "@nx/eslint-plugin": "~18.0.1",
     "@o3r/eslint-plugin": "workspace:^",
     "@o3r/schematics": "workspace:^",
     "@schematics/angular": "~17.0.3",
@@ -67,7 +67,7 @@
     "semver": "^7.5.2",
     "ts-jest": "~29.1.1",
     "ts-node": "~10.9.1",
-    "type-fest": "^4.3.1",
+    "type-fest": "^4.10.2",
     "typescript": "~5.2.2",
     "unionfs": "~4.5.1"
   },
