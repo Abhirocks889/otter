@@ -74,7 +74,9 @@ $test-mode-enabled: false !default;
 /// @access private
 @function log-variable($name, $value: null, $details: null) {
   $metadata-debug: false !default;
-  @if (meta.function-exists('metadata-report')) {
+  $is-internal-property: string.index($name, '_') == 1;
+
+  @if (meta.function-exists('metadata-report') and not $is-internal-property) {
     $metadata-debug: metadata-report($name, $value, $details);
   }
   @return $metadata-debug;
