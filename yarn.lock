@@ -3274,21 +3274,34 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@design-factory/design-factory@npm:^15.2.2":
-  version: 15.2.2
-  resolution: "@design-factory/design-factory@npm:15.2.2"
+"@design-factory/design-factory@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "@design-factory/design-factory@npm:17.0.0"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
-    "@angular/common": ^16.0.0
-    "@angular/core": ^16.0.0
-    "@angular/localize": ^16.0.0
-    "@ng-bootstrap/ng-bootstrap": ~15.1.0
-    "@ng-select/ng-select": ~11.0.0
-    ag-grid-angular: ~29.3.5
-    ag-grid-community: ~29.3.5
-    bootstrap: 5.2.0
-  checksum: 10/712354e6abdf3d46bcf8c8a82fe1d8d49f99d9094e8ef4b30ba059ea2f6924c093993f67ce26b1d8119c427e4cee4d7566e0a13ea21dd0283d9e647619b88412
+    "@agnos-ui/angular": ^0.0.1-alpha.10
+    "@angular/common": ^17.1.0
+    "@angular/core": ^17.1.0
+    "@angular/localize": ^17.1.0
+    "@angular/router": ^17.1.0
+    "@ng-bootstrap/ng-bootstrap": ~16.0.0
+    "@ng-select/ng-select": ~12.0.6
+    ag-grid-angular: ~31.0.2
+    ag-grid-community: ~31.0.2
+    bootstrap: 5.3.2
+  peerDependenciesMeta:
+    "@agnos-ui/angular":
+      optional: true
+    "@angular/localize":
+      optional: true
+    "@angular/router":
+      optional: true
+    "@ng-bootstrap/ng-bootstrap":
+      optional: true
+    "@ng-select/ng-select":
+      optional: true
+  checksum: 10/c9b81b5e2a784de6fc3cb49aafb7c4320f810c0092fd1fe9d4ef73fd3fe5423a09ec8d656bcac2beb179ed18362e39cf78933206f88a7c12e6b478c6050f49ed
   languageName: node
   linkType: hard
 
@@ -5503,16 +5516,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ng-select/ng-select@npm:~12.0.0":
-  version: 12.0.6
-  resolution: "@ng-select/ng-select@npm:12.0.6"
+"@ng-select/ng-select@npm:~12.0.7":
+  version: 12.0.7
+  resolution: "@ng-select/ng-select@npm:12.0.7"
   dependencies:
     tslib: "npm:^2.3.1"
   peerDependencies:
     "@angular/common": ^17.0.0-rc.0
     "@angular/core": ^17.0.0-rc.0
     "@angular/forms": ^17.0.0-rc.0
-  checksum: 10/e228cae21239d32f4fade8de7eb2956996af2447eee685b42cad1d0ed94c55adb515267f8a8f4483e90b87a0255d39485811336100901e65ccf64f2de1bb7193
+  checksum: 10/018e60f9f24784392c874f66098e52e6530d6a9f648813107f0b2059fb089ffbc7f0eb1d44a19776df77435c65f4f1767fc3614336bd5172d2a8d09a59fd39bb
   languageName: node
   linkType: hard
 
@@ -6813,9 +6826,9 @@ __metadata:
     "@angular/platform-browser": "npm:~17.0.4"
     "@angular/platform-browser-dynamic": "npm:~17.0.4"
     "@angular/router": "npm:~17.0.4"
-    "@design-factory/design-factory": "npm:^15.2.2"
+    "@design-factory/design-factory": "npm:^17.0.0"
     "@ng-bootstrap/ng-bootstrap": "npm:^16.0.0"
-    "@ng-select/ng-select": "npm:~12.0.0"
+    "@ng-select/ng-select": "npm:~12.0.7"
     "@ngrx/entity": "npm:~17.1.0"
     "@ngrx/store": "npm:~17.1.0"
     "@nx/eslint-plugin": "npm:~17.3.0"
@@ -6836,11 +6849,11 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.19.0"
     "@typescript-eslint/parser": "npm:^6.11.0"
     "@typescript-eslint/types": "npm:^6.11.0"
-    ag-grid-angular: "npm:~31.0.0"
-    ag-grid-community: "npm:~31.0.0"
+    ag-grid-angular: "npm:~31.0.3"
+    ag-grid-community: "npm:~31.0.3"
     archiver: "npm:^6.0.1"
-    bootstrap: "npm:5.2.0"
-    bootstrap-icons: "npm:^1.10.5"
+    bootstrap: "npm:5.3.2"
+    bootstrap-icons: "npm:^1.11.3"
     chokidar: "npm:^3.5.2"
     chrome-webstore-upload: "npm:^3.0.0"
     concurrently: "npm:^8.0.0"
@@ -7796,9 +7809,9 @@ __metadata:
     "@commitlint/cli": "npm:^18.0.0"
     "@commitlint/config-conventional": "npm:^18.0.0"
     "@compodoc/compodoc": "npm:^1.1.19"
-    "@design-factory/design-factory": "npm:^15.2.2"
+    "@design-factory/design-factory": "npm:^17.0.0"
     "@ng-bootstrap/ng-bootstrap": "npm:^16.0.0"
-    "@ng-select/ng-select": "npm:~12.0.0"
+    "@ng-select/ng-select": "npm:~12.0.7"
     "@ngrx/effects": "npm:~17.1.0"
     "@ngrx/entity": "npm:~17.1.0"
     "@ngrx/router-store": "npm:~17.1.0"
@@ -7829,11 +7842,11 @@ __metadata:
     "@typescript-eslint/parser": "npm:^6.11.0"
     "@typescript-eslint/types": "npm:^6.11.0"
     "@yarnpkg/sdks": "npm:^3.0.0"
-    ag-grid-angular: "npm:~31.0.0"
-    ag-grid-community: "npm:~31.0.0"
+    ag-grid-angular: "npm:~31.0.3"
+    ag-grid-community: "npm:~31.0.3"
     babel-loader: "npm:^9.0.0"
-    bootstrap: "npm:5.2.0"
-    bootstrap-icons: "npm:^1.10.5"
+    bootstrap: "npm:5.3.2"
+    bootstrap-icons: "npm:^1.11.3"
     browserslist: "npm:^4.21.4"
     concurrently: "npm:^8.0.0"
     cpy-cli: "npm:^5.0.0"
@@ -8539,10 +8552,10 @@ __metadata:
     "@angular/platform-browser": "npm:~17.0.4"
     "@angular/platform-browser-dynamic": "npm:~17.0.4"
     "@angular/router": "npm:~17.0.4"
-    "@design-factory/design-factory": "npm:^15.2.2"
+    "@design-factory/design-factory": "npm:^17.0.0"
     "@formatjs/intl-numberformat": "npm:~8.10.0"
     "@ng-bootstrap/ng-bootstrap": "npm:^16.0.0"
-    "@ng-select/ng-select": "npm:~12.0.0"
+    "@ng-select/ng-select": "npm:~12.0.7"
     "@ngrx/effects": "npm:~17.1.0"
     "@ngrx/entity": "npm:~17.1.0"
     "@ngrx/store": "npm:~17.1.0"
@@ -8574,10 +8587,10 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.19.0"
     "@typescript-eslint/parser": "npm:^6.11.0"
     "@typescript-eslint/types": "npm:^6.11.0"
-    ag-grid-angular: "npm:~31.0.0"
-    ag-grid-community: "npm:~31.0.0"
-    bootstrap: "npm:5.2.0"
-    bootstrap-icons: "npm:^1.10.5"
+    ag-grid-angular: "npm:~31.0.3"
+    ag-grid-community: "npm:~31.0.3"
+    bootstrap: "npm:5.3.2"
+    bootstrap-icons: "npm:^1.11.3"
     concurrently: "npm:^8.0.0"
     eslint: "npm:^8.42.0"
     eslint-import-resolver-node: "npm:^0.3.4"
@@ -13114,7 +13127,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ag-grid-angular@npm:~31.0.0":
+"ag-grid-angular@npm:~31.0.3":
   version: 31.0.3
   resolution: "ag-grid-angular@npm:31.0.3"
   dependencies:
@@ -13127,7 +13140,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ag-grid-community@npm:~31.0.0, ag-grid-community@npm:~31.0.3":
+"ag-grid-community@npm:~31.0.3":
   version: 31.0.3
   resolution: "ag-grid-community@npm:31.0.3"
   checksum: 10/f1658691b7689873e5deca1d9172b78106dc57e83db4d50d235fa167d54b98881bb29880eb864f05c03a4fa5cfa727efa2c8b4e85df427d3cc17829acec579c6
@@ -14250,7 +14263,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap-icons@npm:^1.10.5":
+"bootstrap-icons@npm:^1.11.3":
   version: 1.11.3
   resolution: "bootstrap-icons@npm:1.11.3"
   checksum: 10/7da4e8e1fb456dddb5b460020fbfd6d223cf65160250b6196d79748889e805ddf5f3cedb33178c3e4bac732652f33ab5f68e899c4a9fa2ade1a5899689aa5172
@@ -14267,12 +14280,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap@npm:5.2.0":
-  version: 5.2.0
-  resolution: "bootstrap@npm:5.2.0"
+"bootstrap@npm:5.3.2":
+  version: 5.3.2
+  resolution: "bootstrap@npm:5.3.2"
   peerDependencies:
-    "@popperjs/core": ^2.11.5
-  checksum: 10/7d2a376f9ff17926d1abdfbec33b9b293ce757967aca3a92b28f9279619fc261785de80568be5af7db3da146ee44470562b04577f721cd7bf0adf7191949e367
+    "@popperjs/core": ^2.11.8
+  checksum: 10/5c3eb0634218d206bc2518154432bc80f7eec225db9c0dcb04b80353ba5cb121b8e6d12993ffe025d32ffe511051290461d8ca0adcae7971d82d329025bd16ab
   languageName: node
   linkType: hard
 
